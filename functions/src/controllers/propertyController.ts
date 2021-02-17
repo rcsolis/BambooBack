@@ -4,11 +4,10 @@ import { Property } from "../classes/Property";
 import { Photo } from "../classes/Photo";
 import {
     PhotoToFirestore,
-    PropertyToFirestore,
+    PropertyInFirestore,
     RawProperty,
 } from "../utils/interfaces";
 
-// Create DB connection
 const DB = admin.firestore();
 /**
  * SERVICE FUNCTION
@@ -20,6 +19,7 @@ const DB = admin.firestore();
  */
 export const create = functions.https.onRequest(async (request, response) => {
     try {
+        functions.logger.info("Properties:Create. Start");
         // Test method and data
         if (request.method !== "POST" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -39,7 +39,7 @@ export const create = functions.https.onRequest(async (request, response) => {
         // Create document reference
         const propertyRef = await DB.collection("properties").doc();
         // Convert object to save to firestore
-        const plainDoc: PropertyToFirestore =
+        const plainDoc: PropertyInFirestore =
             newProperty.toFirestore(propertyRef.id);
         // Save to Firestore
         const resProp = await propertyRef.set(plainDoc);
@@ -76,6 +76,7 @@ export const create = functions.https.onRequest(async (request, response) => {
  */
 export const update = functions.https.onRequest(async (request, response) => {
     try {
+        functions.logger.info("Properties:Update. Start");
         // Test method and data
         if (request.method !== "PUT" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -94,7 +95,7 @@ export const update = functions.https.onRequest(async (request, response) => {
                 "not-found",
                 "Data is empty");
         }
-        functions.logger.info("Properties:Update. Start", docId, data);
+        functions.logger.info("Properties:Update. Parse", docId, data);
         // Get document to update
         const propertyRef = DB.collection("properties").doc(docId);
         const propertyDoc = await propertyRef.get();
@@ -109,7 +110,7 @@ export const update = functions.https.onRequest(async (request, response) => {
                 "not-found",
                 "Property data does not exist.");
         }
-        const newData: PropertyToFirestore = Property.update(docId,
+        const newData: PropertyInFirestore = Property.update(docId,
             currentData,
             data,
             admin.firestore.FieldValue.serverTimestamp()
@@ -147,6 +148,7 @@ export const update = functions.https.onRequest(async (request, response) => {
  */
 export const remove = functions.https.onRequest( async (request, response) => {
     try {
+        functions.logger.info("Properties:Remove. Start");
         // Test method and data
         if (request.method !== "DELETE" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -164,7 +166,6 @@ export const remove = functions.https.onRequest( async (request, response) => {
                 "invalid-argument",
                 "Data is empty");
         }
-        functions.logger.info("Properties:Remove. Start.");
         // Find document to ensure if exists
         const docRef: FirebaseFirestore.DocumentSnapshot = await DB
             .collection("properties")
@@ -209,6 +210,7 @@ export const remove = functions.https.onRequest( async (request, response) => {
  */
 export const updatePrice = functions.https.onRequest(async (request, response) => {
     try {
+        functions.logger.info("Properties:UpdatePrice. Start");
         // Test method and data
         if (request.method !== "PUT" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -227,7 +229,6 @@ export const updatePrice = functions.https.onRequest(async (request, response) =
                 "Incorrect data");
         }
         // Update price
-        functions.logger.info("Properties:UpdatePrice. Start");
         const docRef = DB.collection("properties").doc(docId);
         const snapshot = await docRef.get();
         if (!snapshot.exists) {
@@ -273,6 +274,7 @@ export const updatePrice = functions.https.onRequest(async (request, response) =
 export const updateAvailability = functions.https
     .onRequest(async (request, response) => {
         try {
+            functions.logger.info("Properties:UpdateAvailability. Start");
             // Test method and data
             if (request.method !== "PUT" && request.is("application/json")) {
                 throw new functions.https.HttpsError(
@@ -290,7 +292,6 @@ export const updateAvailability = functions.https
                     "invalid-argument",
                     "Incorrect data.");
             }
-            functions.logger.info("Properties:UpdateAvailability. Start");
             // Get doc
             const docRef = DB.collection("properties").doc(docId);
             const snap = await docRef.get();
@@ -329,6 +330,69 @@ export const updateAvailability = functions.https
     });
 /**
  * SERVICE FUNCTION
+ * Update the visibilty status of a property, if its visible on webpage or not
+ * @param {string} docId Property identifier
+ * @param {boolean} visible Next status
+ */
+export const updateVisibility = functions.https
+    .onRequest(async (request, response) => {
+        try {
+            functions.logger.info("Properties:UpdateVisibility. Start");
+            // Test method and data
+            if (request.method !== "PUT" && request.is("application/json")) {
+                throw new functions.https.HttpsError(
+                    "unimplemented",
+                    "Method not allowed");
+            }
+            if (request.body === undefined ) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Data is empty");
+            }
+            const { docId, visible } = request.body;
+            if (!docId) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Incorrect data.");
+            }
+            // Get doc
+            const docRef = DB.collection("properties").doc(docId);
+            const snap = await docRef.get();
+            if (!snap.exists) {
+                throw new functions.https.HttpsError(
+                    "not-found",
+                    "Property not found");
+            }
+            // Update
+            const updRes = await docRef.set({
+                isVisible: visible,
+                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            }, { merge: true });
+            functions.logger.info("Properties:UpdateVisibility. End",
+                updRes.writeTime, docId, visible);
+            // Return
+            response.status(200).json({
+                time: updRes.writeTime.toDate(),
+                obj: docId,
+            });
+        } catch (error) {
+            functions.logger.error("Exception in Properties:UpdateVisibility. ",
+                error);
+            if (error.message) {
+                response.status(500).json({
+                    code: error.code,
+                    error: error.message,
+                });
+            } else {
+                response.status(500).json({
+                    code: 500,
+                    error: error,
+                });
+            }
+        }
+    });
+/**
+ * SERVICE FUNCTION
  * Add one to interested counter of a property
  * - Run the update into a transaction because this action could happen
  * in concurrent scenario
@@ -336,6 +400,7 @@ export const updateAvailability = functions.https
  */
 export const addInterest = functions.https.onRequest( async (request, response) => {
     try {
+        functions.logger.info("Properties:AddInterest. Start");
         // Test method and data
         if (request.method !== "PUT" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -353,7 +418,6 @@ export const addInterest = functions.https.onRequest( async (request, response) 
                 "invalid-argument",
                 "Incorrect data.");
         }
-        functions.logger.info("Properties:AddInterest. Start");
         // Get document reference
         const docRef = DB.collection("properties").doc(docId);
         // Run transaction
@@ -407,6 +471,7 @@ export const addInterest = functions.https.onRequest( async (request, response) 
  */
 export const addVisit = functions.https.onRequest(async (request, response) => {
     try {
+        functions.logger.info("Properties:AddVisit. Start");
         // Test method and data
         if (request.method !== "PUT" && request.is("application/json")) {
             throw new functions.https.HttpsError(
@@ -424,7 +489,6 @@ export const addVisit = functions.https.onRequest(async (request, response) => {
                 "invalid-argument",
                 "Incorrect data.");
         }
-        functions.logger.info("Properties:AddVisit. Start");
         // Get document reference
         const docRef = DB.collection("properties").doc(docId);
         // Run transaction
@@ -493,6 +557,8 @@ export const onCreate = functions.firestore
                 resPhoto.writeTime.toDate(), plainPhoto);
             // Update root document (properties)
             return snapshot.ref.set({
+                isAvailable: false,
+                isVisible: false,
                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
             }, { merge: true });
         } catch (error) {
@@ -511,8 +577,8 @@ export const onDelete = functions.firestore
     .document("properties/{docId}")
     .onDelete(async (snapshot, context) => {
         try {
-            const propertyId = context.params.docId;
             functions.logger.info("Properties:onDelete:Trigger. Start");
+            const propertyId = context.params.docId;
             // Get all records in photos collection
             const snapQuery = await DB.collection("photos")
                 .where("propertyId", "==", propertyId)

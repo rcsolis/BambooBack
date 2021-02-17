@@ -1,3 +1,4 @@
+
 export interface AddressFirestore {
     street: string;
     colony: string;
@@ -24,9 +25,12 @@ export interface PhotoToFirestore {
 }
 
 export interface RawProperty {
+    id: string | undefined;
     name: string;
     description: string;
     years: number;
+    price: number;
+    currency: string;
     address: AddressFirestore;
     coordinates: CoordinatesFirestore;
     sizeMts: number;
@@ -48,11 +52,29 @@ export interface RawProperty {
     propertyType: number
     commercialMode: number;
 }
-
-export interface PropertyToFirestore {
+export interface RawPropertyShort {
     id: string | undefined;
     name: string;
     description: string;
+    price: number;
+    currency: string;
+    address: AddressFirestore;
+    coordinates: CoordinatesFirestore;
+    sizeMts: number;
+    buildMts: number;
+    floor: string;
+    rooms: number;
+    baths: number;
+    parking: number;
+    propertyType: number
+    commercialMode: number;
+}
+export interface PropertyInFirestore {
+    id: string | undefined;
+    name: string;
+    description: string;
+    price: number;
+    currency: string;
     years: number;
     address: AddressFirestore;
     coordinates: CoordinatesFirestore;
@@ -75,8 +97,10 @@ export interface PropertyToFirestore {
     propertyType: number
     commercialMode: number;
     isAvailable: boolean;
-    isPublic: boolean;
+    isVisible: boolean;
     visits: number;
     interested: number;
-    updatedAt: FirebaseFirestore.FieldValue | undefined;
+    updatedAt: FirebaseFirestore.Timestamp | Date | undefined;
 }
+
+

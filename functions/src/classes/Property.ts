@@ -1,7 +1,11 @@
 import { Address } from "./Address";
 import { Coordinates } from "./Coordinates";
-import { PropertyType, CommercialMode } from "../utils/constants";
-import { RawProperty, PropertyToFirestore } from "../utils/interfaces";
+import { PropertyType, CommercialMode, Currency } from "../utils/constants";
+import {
+    RawProperty,
+    PropertyInFirestore,
+    RawPropertyShort,
+} from "../utils/interfaces";
 
 /**
  * Main class for represet a property
@@ -11,6 +15,8 @@ export class Property {
     id: string | undefined;
     name: string;
     description: string;
+    price: number;
+    currency: Currency;
     years: number;
     address: Address;
     coordinates: Coordinates;
@@ -33,20 +39,20 @@ export class Property {
     propertyType: PropertyType;
     commercialMode: CommercialMode;
     isAvailable: boolean;
-    isPublic: boolean;
+    isVisible: boolean;
     visits: number;
     interested: number;
-    createdAt: FirebaseFirestore.FieldValue | undefined;
-    updatedAt: FirebaseFirestore.FieldValue | undefined;
-    availableAt: FirebaseFirestore.FieldValue | undefined;;
-    publisedAt: FirebaseFirestore.FieldValue | undefined;;
+    createdAt: FirebaseFirestore.Timestamp | Date | undefined;
+    updatedAt: FirebaseFirestore.Timestamp | Date | undefined;
     /**
      * @constructor
      */
     constructor() {
         this.id = undefined;
         this.name = "";
-        this.description= "";
+        this.description = "";
+        this.price = 0.0;
+        this.currency = Currency.MXN;
         this.years= 0.0;
         this.address= new Address();
         this.coordinates = new Coordinates();
@@ -69,17 +75,15 @@ export class Property {
         this.propertyType= PropertyType.HOUSE;
         this.commercialMode= CommercialMode.SELL;
         this.isAvailable= false;
-        this.isPublic= false;
+        this.isVisible= false;
         this.visits= 0.0;
         this.interested= 0.0;
         this.createdAt= undefined;
         this.updatedAt= undefined;
-        this.availableAt= undefined;
-        this.publisedAt= undefined;
     }
     /**
      * Static method to create a new instance
-     * from plain object.
+     * from plain object sended from a request.
      * @param {RawProperty} obj Plain object
      * @return {Property} New object
      */
@@ -88,6 +92,7 @@ export class Property {
         newProp.name = obj.name;
         newProp.description = obj.description;
         newProp.years = obj.years;
+        newProp.price = obj.price;
         // address
         newProp.address.street = obj.address.street;
         newProp.address.colony = obj.address.colony;
@@ -114,6 +119,15 @@ export class Property {
         newProp.hasTerrace = obj.hasTerrace;
         newProp.terraceMts = obj.terraceMts;
         newProp.amenities = obj.amenities;
+        switch (obj.currency) {
+        case Currency.USD:
+            newProp.currency = Currency.USD;
+            break;
+        default:
+            newProp.currency = Currency.MXN;
+            break;
+        }
+
         switch (obj.propertyType) {
         case PropertyType.APARTMENT:
             newProp.propertyType = PropertyType.APARTMENT;
@@ -143,13 +157,13 @@ export class Property {
      * @param {string} docId Document identifier
      * @param {FirebaseFirestore.DocumentData} current Current values
      * @param {RawProperty} next New values
-     * @param {FirebaseFirestore.FieldValue} updateTimestamp Server timestamp
-     * @return {PropertyToFirestore} Updated plain object
+     * @param {any} updateTimestamp Server timestamp
+     * @return {PropertyInFirestore} Updated plain object
      */
     static update = (docId: string,
         current: FirebaseFirestore.DocumentData,
         next: RawProperty,
-        updateTimestamp: FirebaseFirestore.FieldValue): PropertyToFirestore => {
+        updateTimestamp: any): PropertyInFirestore => {
         const curAmenities: Array<string> = current.amenities;
         next.amenities.forEach((value) => {
             if (!curAmenities.includes(value)) {
@@ -186,6 +200,17 @@ export class Property {
                 break;
             }
         }
+        let newCurrency: Currency = current.currency;
+        if (next.currency !== current.currency) {
+            switch (next.currency) {
+            case Currency.USD:
+                newCurrency = Currency.USD;
+                break;
+            default:
+                newCurrency = Currency.MXN;
+                break;
+            }
+        }
         return {
             id: docId,
             name: (next.name && next.name !== current.name) ?
@@ -193,6 +218,10 @@ export class Property {
             description: (next.description &&
                 next.description !== current.description) ?
                 next.description : current.description,
+            price: (next.price && next.price !== current.price &&
+                next.price > 0) ?
+                next.price : current.price,
+            currency: newCurrency,
             years: (next.years !== current.years) ?
                 next.years : current.years,
             address: {
@@ -254,23 +283,102 @@ export class Property {
             propertyType: newPropertyType,
             commercialMode: newCommercialMode,
             isAvailable: current.isAvailable,
-            isPublic: current.isPublic,
+            isVisible: current.isVisible,
             visits: current.visits,
             interested: current.interested,
             updatedAt: updateTimestamp,
         };
     }
     /**
+     * Creates and object from a document stored into firestore
+     * @param {string} did  Property identifier
+     * @param {FirebaseFirestore.DocumentData} obj Document from firestore
+     * @return {Prperty} New object
+     */
+    static fromFirestore = (did: string,
+        obj: FirebaseFirestore.DocumentData): Property => {
+        const newProp: Property = new Property();
+        newProp.id = did;
+        newProp.name = obj.name;
+        newProp.description = obj.description;
+        newProp.years = obj.years;
+        newProp.price = obj.price;
+        // address
+        newProp.address.street = obj.address.street;
+        newProp.address.colony = obj.address.colony;
+        newProp.address.municipality = obj.address.municipality;
+        newProp.address.state = obj.address.state;
+        newProp.address.postalCode = obj.address.postalCode;
+        // coordinates
+        newProp.coordinates.latitude = obj.coordinates.latitude;
+        newProp.coordinates.longitude = obj.coordinates.longitude;
+
+        newProp.sizeMts = obj.sizeMts;
+        newProp.buildMts = obj.buildMts;
+        newProp.floor = obj.floor;
+        newProp.rooms = obj.rooms;
+        newProp.baths = obj.baths;
+        newProp.parking = obj.parking;
+        newProp.hasLivingRoom = obj.hasLivingRoom;
+        newProp.hasKitchen = obj.hasKitchen;
+        newProp.hasServiceRoom = obj.hasServiceRoom;
+        newProp.hasServiceArea = obj.hasServiceArea;
+        newProp.hasTvRoom = obj.hasTvRoom;
+        newProp.hasFurniture = obj.hasFurniture;
+        newProp.hasCloset = obj.hasCloset;
+        newProp.hasTerrace = obj.hasTerrace;
+        newProp.terraceMts = obj.terraceMts;
+        newProp.amenities = obj.amenities;
+        switch (obj.currency) {
+        case Currency.USD:
+            newProp.currency = Currency.USD;
+            break;
+        default:
+            newProp.currency = Currency.MXN;
+            break;
+        }
+
+        switch (obj.propertyType) {
+        case PropertyType.APARTMENT:
+            newProp.propertyType = PropertyType.APARTMENT;
+            break;
+        default:
+            newProp.propertyType = PropertyType.HOUSE;
+            break;
+        }
+        switch (obj.commercialMode) {
+        case CommercialMode.PRESELL:
+            newProp.commercialMode = CommercialMode.PRESELL;
+            break;
+        case CommercialMode.RENT:
+            newProp.commercialMode = CommercialMode.RENT;
+            break;
+        default:
+            // eslint-disable-next-line indent
+                newProp.commercialMode = CommercialMode.SELL;
+            break;
+        }
+        newProp.isAvailable = obj.isAvailable;
+        newProp.isVisible = obj.isVisible;
+        newProp.visits = obj.visits;
+        newProp.interested = obj.interested;
+        newProp.updatedAt = obj.updatedAt?.toDate();
+        return newProp;
+    }
+
+    /**
      * Method to create a plain object to save to db
      * with all the properties available.
      * @param {string} uid Document identifier
-     * @return {PropertyToFirestore} Plain object
+     * @return {PropertyInFirestore} Plain object
      */
-    toFirestore(uid: string | undefined): PropertyToFirestore {
+    toFirestore(uid: string | undefined): PropertyInFirestore {
         return {
             id: (this.id)?this.id:uid,
             name: this.name,
             description: this.description,
+            price: this.price,
+            currency: this.currency,
             years: this.years,
             address: this.address.toFirestore(),
             coordinates: this.coordinates.toFirestore(),
@@ -293,10 +401,61 @@ export class Property {
             propertyType: this.propertyType,
             commercialMode: this.commercialMode,
             isAvailable: this.isAvailable,
-            isPublic: this.isPublic,
+            isVisible: this.isVisible,
             visits: this.visits,
             interested: this.interested,
             updatedAt: this.updatedAt,
+        };
+    }
+
+    getComplete(): RawProperty {
+        return {
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            years: this.years,
+            price: this.price,
+            currency: this.currency,
+            address: this.address.toFirestore(),
+            coordinates: this.coordinates.toFirestore(),
+            sizeMts: this.sizeMts,
+            buildMts: this.buildMts,
+            floor: this.floor,
+            rooms: this.rooms,
+            baths: this.baths,
+            parking: this.parking,
+            hasLivingRoom: this.hasLivingRoom,
+            hasKitchen: this.hasKitchen,
+            hasServiceRoom: this.hasServiceRoom,
+            hasServiceArea: this.hasServiceArea,
+            hasTvRoom: this.hasTvRoom,
+            hasFurniture: this.hasFurniture,
+            hasCloset: this.hasCloset,
+            hasTerrace: this.hasTerrace,
+            terraceMts: this.terraceMts,
+            amenities: this.amenities,
+            propertyType: this.propertyType,
+            commercialMode: this.commercialMode,
+        };
+    }
+
+    getShort(): RawPropertyShort {
+        return {
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            price: this.price,
+            currency: this.currency,
+            address: this.address.toFirestore(),
+            coordinates: this.coordinates.toFirestore(),
+            sizeMts: this.sizeMts,
+            buildMts: this.buildMts,
+            floor: this.floor,
+            rooms: this.rooms,
+            baths: this.baths,
+            parking: this.parking,
+            propertyType: this.propertyType,
+            commercialMode: this.commercialMode,
         };
     }
 }

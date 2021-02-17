@@ -1,9 +1,10 @@
-import * as admin from "firebase-admin";
-// Initialize application
-admin.initializeApp();
+import * as app from "firebase-admin";
+app.initializeApp();
+
+
 // Organize and group functions based on features
 import * as property from "./controllers/propertyController";
-import * as searching from "./controllers/searchController"
+import * as searching from "./controllers/searchController";
 // import * as photos from "./controllers/photoController"
 /**
  * Property services:
@@ -30,4 +31,4 @@ export const properties = property;
  * - all
  * - getById
  */
-export const search = searching
+export const search = searching;

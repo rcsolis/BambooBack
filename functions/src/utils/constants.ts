@@ -1,3 +1,7 @@
+export enum Currency {
+    MXN = "MXN",
+    USD = "USD",
+}
 // Enum for property type
 export enum PropertyType {
     HOUSE,
