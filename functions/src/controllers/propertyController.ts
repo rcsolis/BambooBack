@@ -3,7 +3,7 @@ import * as admin from "firebase-admin";
 import { Property } from "../classes/Property";
 import { Photo } from "../classes/Photo";
 import {
-    PhotoToFirestore,
+    PhotoInFirestore,
     PropertyInFirestore,
     RawProperty,
 } from "../utils/interfaces";
@@ -550,7 +550,7 @@ export const onCreate = functions.firestore
             // Create empty document with references
             const photoObj = Photo.create(photoRef.id, context.params.docId);
             // Parse to plain js object to save it
-            const plainPhoto: PhotoToFirestore = photoObj.toFirestore();
+            const plainPhoto: PhotoInFirestore = photoObj.toFirestore();
             // Write to photos collection
             const resPhoto = await photoRef.set(plainPhoto);
             functions.logger.info("Properties:onCreate:Trigger. End Trigger",
