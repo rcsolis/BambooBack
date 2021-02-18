@@ -14,14 +14,17 @@ export interface CoordinatesFirestore {
 
 export interface NewPhotoFromJson{
     propertyId: string;
-    name: string;
-    description: string;
 }
-export interface PhotoToFirestore {
+
+export interface Picture{
+    name: string;
+    url: string;
+}
+
+export interface PhotoInFirestore {
     id: string | undefined;
     propertyId: string;
-    name: string;
-    description: string;
+    images: Picture[];
 }
 
 export interface RawProperty {

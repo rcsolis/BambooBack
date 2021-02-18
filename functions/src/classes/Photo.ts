@@ -1,4 +1,4 @@
-import { PhotoToFirestore } from "../utils/interfaces";
+import { Picture, PhotoInFirestore } from "../utils/interfaces";
 
 /**
  * Represent a photo of a property
@@ -7,16 +7,14 @@ import { PhotoToFirestore } from "../utils/interfaces";
 export class Photo {
     id: string | undefined;
     propertyId: string;
-    name: string;
-    description: string;
+    images: Picture[]
     /**
      * @constructor
      */
     constructor() {
         this.id = "";
         this.propertyId = "";
-        this.name = "";
-        this.description = "";
+        this.images = [];
     }
     /**
      * Create a new instance linked with a property
@@ -34,12 +32,13 @@ export class Photo {
      * Method to create a plain js object representation
      * @return {PhotoToFirestore} Plain object
      */
-    toFirestore(): PhotoToFirestore {
+    toFirestore(): PhotoInFirestore {
         return {
             id: this.id,
             propertyId: this.propertyId,
-            name: this.name,
-            description: this.description,
+            images: this.images.map((item) => {
+                return { name: item.name, url: item.url };
+            }),
         };
     }
 }
