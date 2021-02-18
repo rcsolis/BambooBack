@@ -1,12 +1,16 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as stream from "stream";
+import * as path from "path";
+import * as os from "os";
+import * as fs from "fs";
+import * as spawn from "child-process-promise";
 import { promisify } from "util";
 import { Picture } from "../utils/interfaces";
 
 const DB = admin.firestore();
-const storage = admin.storage();
-const bucket = storage.bucket("gs://bamboo-cd1d0.appspot.com");
+const STORAGE = admin.storage();
+const BUCKET = STORAGE.bucket("gs://bamboo-cd1d0.appspot.com");
 const finishedAsync = promisify(stream.finished);
 const runtimeOpts: functions.RuntimeOptions = {
     timeoutSeconds: 30,
@@ -67,7 +71,7 @@ export const create = functions
             const bufferStream: stream.PassThrough = new stream.PassThrough();
             bufferStream.end(imageBuffer);
             // Define file and fileName, create an object
-            const file = bucket.file(`${docId}/` + fileName);
+            const file = BUCKET.file(`${docId}/` + fileName);
             // Write
             bufferStream.pipe(file.createWriteStream({
                 metadata: {
@@ -99,7 +103,7 @@ export const create = functions
                 url: finalUrl,
             });
         } catch (error) {
-            functions.logger.error("Exception in Properties:Create. ", error);
+            functions.logger.error("Exception in Photos:Create. ", error);
             if (error.message) {
                 response.status(500).json({
                     code: error.code,
@@ -113,3 +117,80 @@ export const create = functions
             }
         }
     });
+/**
+ * TRIGGER FUNCTION
+ * Launch when a object is created successfully into the bucket of Storage service.
+ * Get the name, check if its an image and run the process to create thumbnails.
+ * SIZES, contains the measurements we want for the images
+ * Download to temporal file storage, create the thumbnail, updload again to
+ * cloud storage and delete the temp file. (this launch again this function, in order
+ * to prevent cyclic calls, check the image name)
+ */
+export const onCreate = functions.storage.object().onFinalize(async (photo) => {
+    try {
+        functions.logger.info("Photos:OnCreate. START.");
+        // Resize target width in pixels
+        const SIZES = [128, 256, 512];
+        // Get the bukect reference
+        // const fileBucket = photo.bucket;
+        // const bucket = admin.storage().bucket(fileBucket);
+        // File name with path of the object
+        const filePath = photo.name;
+        // Content type of the object
+        const contentType = photo.contentType;
+        // Check if has a name
+        if (!filePath) {
+            functions.logger.error("Photos:OnCreate. File doesnt has a name.",
+                photo);
+            throw new Error("File doesnt has a name.");
+        }
+        // Check if is an image file
+        if (!contentType?.startsWith("image/")) {
+            functions.logger.warn("Photos:OnCreate. This is not an image.",
+                filePath);
+            // Nothing to do
+            return;
+        }
+        // Get the file name.
+        const fileName = path.basename(filePath);
+        // Exit if the image is already a thumbnail.
+        if (fileName.startsWith("thumb_")) {
+            return;
+        }
+        // Create the temporal file path
+        const tempFilePath = path.join(os.tmpdir(), fileName);
+        const metadata = {
+            contentType: contentType,
+        };
+        // Download to temporal file storage
+        await BUCKET.file(filePath).download({ destination: tempFilePath });
+        functions.logger.info("Photos:OnCreate. Downloaded to temp.",
+            filePath, tempFilePath);
+        // for each size
+        SIZES.forEach(async (size) => {
+            // dd a 'thumb_' and size prefix to thumbnails file name.
+            const thumbFileName = `thumb_${size}_${fileName}`;
+            const thumbFilePath = path.join(path.dirname(filePath), thumbFileName);
+            // Generate a thumbnail using ImageMagick.
+            await spawn.spawn("convert",
+                [tempFilePath, "-thumbnail", `${size}`, tempFilePath]);
+            functions.logger.info("Photos:onCreate. Created thumbnail.",
+                size, thumbFilePath, thumbFileName);
+            // Uploading the thumbnail.
+            await BUCKET.upload(tempFilePath, {
+                destination: thumbFilePath,
+                metadata: metadata,
+            });
+            functions.logger.info("Photos:onCreate. Thumbnail uploaded.",
+                thumbFilePath, thumbFileName);
+            // Delete the local file to free up disk space
+            fs.unlinkSync(tempFilePath);
+            functions.logger.info("Photos:onCreate. Thumbnail tempfile deleted.");
+        });
+        functions.logger.info("Photos.OnCreate. END.");
+        return;
+    } catch (error) {
+        functions.logger.error("Exception in Photos:onCreate. ", error);
+        return;
+    }
+});
