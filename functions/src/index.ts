@@ -5,7 +5,7 @@ app.initializeApp();
 // Organize and group functions based on features
 import * as property from "./controllers/propertyController";
 import * as searching from "./controllers/searchController";
-// import * as photos from "./controllers/photoController"
+import * as images from "./controllers/photoController";
 /**
  * Property services:
  * - Create: HTTPS.REQUEST - POST
@@ -25,7 +25,7 @@ export const properties = property;
  * - OnCreate
  * - remove
  */
-// export const photos = photo
+export const photos = images;
 /**
  * Search services:
  * - all
