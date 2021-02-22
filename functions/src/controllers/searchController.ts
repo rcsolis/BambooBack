@@ -64,21 +64,21 @@ export const getById = functions.https.onRequest(async (request, response) => {
     try {
         functions.logger.info("Search:GetById. Start");
         // Test method and data
-        if (request.method !== "GET" && request.is("application/json")) {
+        if (request.method !== "GET") {
             throw new functions.https.HttpsError(
                 "unimplemented",
                 "Method not allowed");
         }
-        if (request.body === undefined ) {
+        if (request.query === undefined || request.query.docId === undefined) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
                 "Data is empty");
         }
-        const docId: string = request.body.docId;
+        const docId: string = request.query.docId.toString();
         if (!docId) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
-                "Incorrect data.");
+                "Incorrect data.", docId);
         }
         // Get all Document
         const docRef = DB.collection("properties").doc(docId);

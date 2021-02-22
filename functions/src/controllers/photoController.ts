@@ -139,19 +139,19 @@ export const create = functions
  */
 export const getByProperty = functions.https.onRequest(async (request, response) => {
     try {
-        functions.logger.info("Photos:Get. Start");
+        functions.logger.info("Photos:GetByProperty. Start");
         // Test method and data
-        if (request.method !== "GET" && request.is("application/json")) {
+        if (request.method !== "GET") {
             throw new functions.https.HttpsError(
                 "unimplemented",
                 "Method not allowed");
         }
-        if (request.body === undefined ) {
+        if (request.query === undefined || request.query.docId === undefined ) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
                 "Data is empty");
         }
-        const docId = request.body.docId;
+        const docId:string = request.query.docId.toString();
         if (!docId) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
@@ -168,9 +168,10 @@ export const getByProperty = functions.https.onRequest(async (request, response)
         const docRef = docQuery.docs[0];
         const photo: Photo = Photo.loadFromFirestore(docRef.data());
         // Return
+        functions.logger.info("Photos:GetByProperty. End");
         response.status(200).json(photo.toFirestore());
     } catch (error) {
-        functions.logger.error("Exception in Photos:Get. ", error);
+        functions.logger.error("Exception in Photos:GetByProperty. ", error);
         if (error.message) {
             response.status(500).json({
                 code: error.code,
@@ -193,19 +194,19 @@ export const getByProperty = functions.https.onRequest(async (request, response)
  */
 export const getById = functions.https.onRequest(async (request, response) => {
     try {
-        functions.logger.info("Photos:Get. Start");
+        functions.logger.info("Photos:GetById. Start");
         // Test method and data
-        if (request.method !== "GET" && request.is("application/json")) {
+        if (request.method !== "GET") {
             throw new functions.https.HttpsError(
                 "unimplemented",
                 "Method not allowed");
         }
-        if (request.body === undefined ) {
+        if (request.query === undefined || request.query.docId === undefined ) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
                 "Data is empty");
         }
-        const docId = request.body.docId;
+        const docId:string = request.query.docId.toString();
         if (!docId) {
             throw new functions.https.HttpsError(
                 "invalid-argument",
@@ -216,13 +217,14 @@ export const getById = functions.https.onRequest(async (request, response) => {
         if (!docSnap.exists) {
             throw new functions.https.HttpsError(
                 "not-found",
-                "No found iamges");
+                "Images not found");
         }
         const photo: Photo = Photo.loadFromFirestore(docSnap.data());
         // Return
+        functions.logger.info("Photos:GetById. End");
         response.status(200).json(photo.toFirestore());
     } catch (error) {
-        functions.logger.error("Exception in Photos:Get. ", error);
+        functions.logger.error("Exception in Photos:GetById. ", error);
         if (error.message) {
             response.status(500).json({
                 code: error.code,
@@ -275,6 +277,9 @@ export const onCreate = functions.runWith(runtimeOpts)
             const fileName = path.basename(filePath);
             // Exit if the image is already a thumbnail.
             if (fileName.startsWith("thumb_")) {
+                functions.logger
+                    .warn("Photos:OnCreate. END Is a Thumbnail, nothing to do.",
+                        filePath);
                 return;
             }
             // Create the temporal file path
