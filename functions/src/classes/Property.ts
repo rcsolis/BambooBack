@@ -42,8 +42,10 @@ export class Property {
     isVisible: boolean;
     visits: number;
     interested: number;
-    createdAt: FirebaseFirestore.Timestamp | Date | undefined;
-    updatedAt: FirebaseFirestore.Timestamp | Date | undefined;
+    createdAt: FirebaseFirestore.FieldValue |
+        FirebaseFirestore.Timestamp | Date | undefined;
+    updatedAt: FirebaseFirestore.FieldValue |
+        FirebaseFirestore.Timestamp | Date | undefined;
     /**
      * @constructor
      */
@@ -85,9 +87,11 @@ export class Property {
      * Static method to create a new instance
      * from plain object sended from a request.
      * @param {RawProperty} obj Plain object
+     * @param {any} timeStamp Server timestamp
      * @return {Property} New object
      */
-    static create = (obj: RawProperty): Property => {
+    static create = (obj: RawProperty,
+        timeStamp: FirebaseFirestore.FieldValue ): Property => {
         const newProp = new Property();
         newProp.name = obj.name;
         newProp.description = obj.description;
@@ -119,6 +123,7 @@ export class Property {
         newProp.hasTerrace = obj.hasTerrace;
         newProp.terraceMts = obj.terraceMts;
         newProp.amenities = obj.amenities;
+
         switch (obj.currency) {
         case Currency.USD:
             newProp.currency = Currency.USD;
@@ -149,6 +154,7 @@ export class Property {
             break;
         }
 
+        newProp.updatedAt = timeStamp;
         return newProp;
     }
     /**

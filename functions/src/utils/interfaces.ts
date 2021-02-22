@@ -16,9 +16,16 @@ export interface NewPhotoFromJson{
     propertyId: string;
 }
 
+export interface Thumbnail{
+    name: string;
+    url: string;
+}
 export interface Picture{
     name: string;
     url: string;
+    thumb128: Thumbnail,
+    thumb256: Thumbnail,
+    thumb512: Thumbnail,
 }
 
 export interface PhotoInFirestore {
@@ -103,7 +110,8 @@ export interface PropertyInFirestore {
     isVisible: boolean;
     visits: number;
     interested: number;
-    updatedAt: FirebaseFirestore.Timestamp | Date | undefined;
+    updatedAt: FirebaseFirestore.FieldValue |
+    FirebaseFirestore.Timestamp | Date | undefined;
 }
 
 

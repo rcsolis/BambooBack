@@ -37,8 +37,22 @@ export class Photo {
             id: this.id,
             propertyId: this.propertyId,
             images: this.images.map((item) => {
-                return { name: item.name, url: item.url };
+                return {
+                    name: item.name,
+                    url: item.url,
+                    thumb128: item.thumb128,
+                    thumb256: item.thumb256,
+                    thumb512: item.thumb512,
+                };
             }),
         };
+    }
+
+    static loadFromFirestore(data: any): Photo {
+        const photo: Photo = new Photo();
+        photo.id = data.id;
+        photo.propertyId = data.propertyId;
+        photo.images = data.images;
+        return photo;
     }
 }

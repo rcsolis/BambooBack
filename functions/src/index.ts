@@ -24,6 +24,8 @@ export const properties = property;
  * - create
  * - OnCreate
  * - remove
+ * - getById
+ * - getByProperty
  */
 export const photos = images;
 /**

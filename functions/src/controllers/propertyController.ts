@@ -34,7 +34,9 @@ export const create = functions.https.onRequest(async (request, response) => {
         // Get data from post
         const data: RawProperty = request.body.data;
         // Create new property
-        const newProperty: Property = Property.create(data);
+        const newProperty: Property = Property.create(data,
+            admin.firestore.FieldValue.serverTimestamp()
+        );
         functions.logger.info("Properties:Create. Convert data", data);
         // Create document reference
         const propertyRef = await DB.collection("properties").doc();
