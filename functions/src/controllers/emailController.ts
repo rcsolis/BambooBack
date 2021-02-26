@@ -9,13 +9,13 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-transporter.verify(function(error: any) {
-    if (error) {
-        functions.logger.info(error);
-    } else {
-        functions.logger.info("Server is ready to take our messages");
-    }
-});
+// transporter.verify(function(error: any) {
+//     if (error) {
+//         functions.logger.info(error);
+//     } else {
+//       functions.logger.info("Email:Send. Server is ready to take our messages.");
+//     }
+// });
 
 export const send = functions.https.onRequest(async (request, response) => {
     try {
@@ -37,7 +37,7 @@ export const send = functions.https.onRequest(async (request, response) => {
 
         const mail = {
             from: "contacto@bamboohogar.mx",
-            to: "contacto@bamboohogar.mx",
+            to: "jonatan@ominumz.mx",
             subject: `Interesados en ${property}`,
             html: `<h1> Interesado en la propiedad ${ property }  </h1>` +
                 "<hr />" +
@@ -47,18 +47,12 @@ export const send = functions.https.onRequest(async (request, response) => {
                     `<li> Descripción de lo que pide: ${ description } </li>` +
                 "</ul>",
         };
-
-        transporter.sendMail(mail, (err: any) => {
-            if (err) {
-                response.json({
-                    status: "fail",
-                });
-            } else {
-                response.json({
-                    status: "success",
-                });
-            }
-        });
+        functions.logger.log("Sending email");
+        const mailInfo = await transporter.sendMail(mail);
+        functions.logger.log("Email Send:", mailInfo,
+            mailInfo.messageId, mailInfo.response);
+        functions.logger.info("Email:Send. END.");
+        response.status(200).json({ status: "OK" });
     } catch ( error ) {
         functions.logger.error("Exception in Email:Send. ", error);
         if (error.message) {
