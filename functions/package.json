@@ -16,6 +16,8 @@
   "dependencies": {
     "@types/node": "^14.14.31",
     "@types/nodemailer": "^6.4.0",
+    "@types/nodemailer-direct-transport": "^1.0.31",
+    "@types/nodemailer-smtp-transport": "^2.7.4",
     "child-process-promise": "^2.2.1",
     "firebase-admin": "^9.2.0",
     "firebase-functions": "^3.11.0",

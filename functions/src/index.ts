@@ -7,6 +7,7 @@ import * as property from "./controllers/propertyController";
 import * as searching from "./controllers/searchController";
 import * as images from "./controllers/photoController";
 import * as emailing from "./controllers/emailController";
+
 /**
  * Property services:
  * - Create: HTTPS.REQUEST - POST

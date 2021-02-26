@@ -37,7 +37,7 @@ export const send = functions.https.onRequest(async (request, response) => {
 
         const mail = {
             from: "contacto@bamboohogar.mx",
-            to: "jonatan@ominumz.mx",
+            to: "contacto@bamboohogar.mx",
             subject: `Interesados en ${property}`,
             html: `<h1> Interesado en la propiedad ${ property }  </h1>` +
                 "<hr />" +
