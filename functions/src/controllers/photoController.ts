@@ -2,6 +2,7 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as stream from "stream";
 import * as path from "path";
+import * as cors from "cors";
 import * as os from "os";
 import * as fs from "fs";
 import * as spawn from "child-process-promise";
@@ -20,6 +21,8 @@ const runtimeOpts: functions.RuntimeOptions = {
     timeoutSeconds: 20,
     memory: "512MB",
 };
+
+const corsHandler = cors({ origin: true });
 /**
  * SERVICE FUNCTION
  * Function to receives an image and upload to the bucket
@@ -138,52 +141,54 @@ export const create = functions
  * @return {object} Photo object with images array
  */
 export const getByProperty = functions.https.onRequest(async (request, response) => {
-    try {
-        functions.logger.info("Photos:GetByProperty. Start");
-        // Test method and data
-        if (request.method !== "GET") {
-            throw new functions.https.HttpsError(
-                "unimplemented",
-                "Method not allowed");
+    corsHandler( request, response, async () => {
+        try {
+            functions.logger.info("Photos:GetByProperty. Start");
+            // Test method and data
+            if (request.method !== "GET") {
+                throw new functions.https.HttpsError(
+                    "unimplemented",
+                    "Method not allowed");
+            }
+            if (request.query === undefined || request.query.docId === undefined ) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Data is empty");
+            }
+            const docId:string = request.query.docId.toString();
+            if (!docId) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Incorrect data.");
+            }
+            // get document
+            const docQuery = await DB.collection("photos")
+                .where("propertyId", "==", docId).get();
+            if (docQuery.empty || docQuery.size>1) {
+                throw new functions.https.HttpsError(
+                    "failed-precondition",
+                    "Broken relationship between photos and properties");
+            }
+            const docRef = docQuery.docs[0];
+            const photo: Photo = Photo.loadFromFirestore(docRef.data());
+            // Return
+            functions.logger.info("Photos:GetByProperty. End");
+            response.status(200).json(photo.toFirestore());
+        } catch (error) {
+            functions.logger.error("Exception in Photos:GetByProperty. ", error);
+            if (error.message) {
+                response.status(500).json({
+                    code: error.code,
+                    error: error.message,
+                });
+            } else {
+                response.status(500).json({
+                    code: 500,
+                    error: error,
+                });
+            }
         }
-        if (request.query === undefined || request.query.docId === undefined ) {
-            throw new functions.https.HttpsError(
-                "invalid-argument",
-                "Data is empty");
-        }
-        const docId:string = request.query.docId.toString();
-        if (!docId) {
-            throw new functions.https.HttpsError(
-                "invalid-argument",
-                "Incorrect data.");
-        }
-        // get document
-        const docQuery = await DB.collection("photos")
-            .where("propertyId", "==", docId).get();
-        if (docQuery.empty || docQuery.size>1) {
-            throw new functions.https.HttpsError(
-                "failed-precondition",
-                "Broken relationship between photos and properties");
-        }
-        const docRef = docQuery.docs[0];
-        const photo: Photo = Photo.loadFromFirestore(docRef.data());
-        // Return
-        functions.logger.info("Photos:GetByProperty. End");
-        response.status(200).json(photo.toFirestore());
-    } catch (error) {
-        functions.logger.error("Exception in Photos:GetByProperty. ", error);
-        if (error.message) {
-            response.status(500).json({
-                code: error.code,
-                error: error.message,
-            });
-        } else {
-            response.status(500).json({
-                code: 500,
-                error: error,
-            });
-        }
-    }
+    });
 });
 /**
  * SERVICE FUNCTION

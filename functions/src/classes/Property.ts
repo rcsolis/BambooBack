@@ -42,6 +42,8 @@ export class Property {
     isVisible: boolean;
     visits: number;
     interested: number;
+    source: string;
+    matter: string;
     createdAt: FirebaseFirestore.FieldValue |
         FirebaseFirestore.Timestamp | Date | undefined;
     updatedAt: FirebaseFirestore.FieldValue |
@@ -76,6 +78,8 @@ export class Property {
         this.amenities= [];
         this.propertyType= PropertyType.HOUSE;
         this.commercialMode= CommercialMode.SELL;
+        this.source= "";
+        this.matter= "";
         this.isAvailable= false;
         this.isVisible= false;
         this.visits= 0.0;
@@ -123,6 +127,8 @@ export class Property {
         newProp.hasTerrace = obj.hasTerrace;
         newProp.terraceMts = obj.terraceMts;
         newProp.amenities = obj.amenities;
+        newProp.source = obj.source;
+        newProp.matter = obj.matter;
 
         switch (obj.currency) {
         case Currency.USD:
@@ -287,6 +293,8 @@ export class Property {
                 next.terraceMts : current.terraceMts,
             amenities: newAmenities,
             propertyType: newPropertyType,
+            source: current.source,
+            matter: current.matter,
             commercialMode: newCommercialMode,
             isAvailable: current.isAvailable,
             isVisible: current.isVisible,
@@ -335,6 +343,9 @@ export class Property {
         newProp.hasTerrace = obj.hasTerrace;
         newProp.terraceMts = obj.terraceMts;
         newProp.amenities = obj.amenities;
+        newProp.source = obj.source;
+        newProp.matter = obj.matter;
+
         switch (obj.currency) {
         case Currency.USD:
             newProp.currency = Currency.USD;
@@ -405,6 +416,8 @@ export class Property {
             terraceMts: this.terraceMts,
             amenities: this.amenities,
             propertyType: this.propertyType,
+            source: this.source,
+            matter: this.matter,
             commercialMode: this.commercialMode,
             isAvailable: this.isAvailable,
             isVisible: this.isVisible,
@@ -442,6 +455,8 @@ export class Property {
             amenities: this.amenities,
             propertyType: this.propertyType,
             commercialMode: this.commercialMode,
+            source: this.source,
+            matter: this.matter,
         };
     }
 
@@ -462,6 +477,8 @@ export class Property {
             parking: this.parking,
             propertyType: this.propertyType,
             commercialMode: this.commercialMode,
+            source: this.source,
+            matter: this.matter,
         };
     }
 }

@@ -59,8 +59,10 @@ export interface RawProperty {
     hasTerrace: boolean;
     terraceMts: number;
     amenities: string[];
-    propertyType: number
+    propertyType: number;
     commercialMode: number;
+    source: string;
+    matter: string;
 }
 export interface RawPropertyShort {
     id: string | undefined;
@@ -78,6 +80,8 @@ export interface RawPropertyShort {
     parking: number;
     propertyType: number
     commercialMode: number;
+    source: string;
+    matter: string;
 }
 export interface PropertyInFirestore {
     id: string | undefined;
@@ -104,7 +108,9 @@ export interface PropertyInFirestore {
     hasTerrace: boolean;
     terraceMts: number;
     amenities: string[];
-    propertyType: number
+    propertyType: number;
+    source: string;
+    matter: string;
     commercialMode: number;
     isAvailable: boolean;
     isVisible: boolean;
