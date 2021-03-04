@@ -22,7 +22,7 @@ export const all = functions.https.onRequest(async (request, response) => {
                     "invalid-argument",
                     "Data is empty");
             }
-            const complete: boolean = request.body.complete;
+            const complete = request.query.complete;
             // Get all Documents
             const docRef = DB.collection("properties");
             const snapshots = await docRef.where("isAvailable", "==", true)
@@ -35,7 +35,7 @@ export const all = functions.https.onRequest(async (request, response) => {
                 snapshots.forEach((document) => {
                     const data: FirebaseFirestore.DocumentData = document.data();
                     const prop: Property = Property.fromFirestore(document.id, data);
-                    if (complete) {
+                    if (complete === "true") {
                         result.push(prop.getComplete());
                     } else {
                         result.push(prop.getShort());
@@ -66,56 +66,58 @@ export const all = functions.https.onRequest(async (request, response) => {
 });
 
 export const getById = functions.https.onRequest(async (request, response) => {
-    try {
-        functions.logger.info("Search:GetById. Start");
-        // Test method and data
-        if (request.method !== "GET") {
-            throw new functions.https.HttpsError(
-                "unimplemented",
-                "Method not allowed");
-        }
-        if (request.query === undefined || request.query.docId === undefined) {
-            throw new functions.https.HttpsError(
-                "invalid-argument",
-                "Data is empty");
-        }
-        const docId: string = request.query.docId.toString();
-        if (!docId) {
-            throw new functions.https.HttpsError(
-                "invalid-argument",
-                "Incorrect data.", docId);
-        }
-        // Get all Document
-        const docRef = DB.collection("properties").doc(docId);
-        const snapshot = await docRef.get();
-        if (!snapshot.exists) {
-            throw new functions.https.HttpsError(
-                "not-found",
-                "Property not found.");
-        }
-        const docData = snapshot.data()!;
-        if (!docData.isAvailable || !docData.isVisible) {
-            throw new functions.https.HttpsError(
-                "failed-precondition",
-                "Property not available.");
-        }
-        const prop: Property = Property.fromFirestore(snapshot.id, docData);
-        functions.logger.info("Search:GetById. End");
-        response.status(200).json({
-            property: prop.getComplete(),
-        });
-    } catch (error) {
-        functions.logger.error("Exception in Search:GetById. ", error);
-        if (error.message) {
-            response.status(500).json({
-                code: error.code,
-                error: error.message,
+    corsHandler( request, response, async () => {
+        try {
+            functions.logger.info("Search:GetById. Start");
+            // Test method and data
+            if (request.method !== "GET") {
+                throw new functions.https.HttpsError(
+                    "unimplemented",
+                    "Method not allowed");
+            }
+            if (request.query === undefined || request.query.docId === undefined) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Data is empty");
+            }
+            const docId: string = request.query.docId.toString();
+            if (!docId) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Incorrect data.", docId);
+            }
+            // Get all Document
+            const docRef = DB.collection("properties").doc(docId);
+            const snapshot = await docRef.get();
+            if (!snapshot.exists) {
+                throw new functions.https.HttpsError(
+                    "not-found",
+                    "Property not found.");
+            }
+            const docData = snapshot.data()!;
+            if (!docData.isAvailable || !docData.isVisible) {
+                throw new functions.https.HttpsError(
+                    "failed-precondition",
+                    "Property not available.");
+            }
+            const prop: Property = Property.fromFirestore(snapshot.id, docData);
+            functions.logger.info("Search:GetById. End");
+            response.status(200).json({
+                property: prop.getComplete(),
             });
-        } else {
-            response.status(500).json({
-                code: 500,
-                error: error,
-            });
+        } catch (error) {
+            functions.logger.error("Exception in Search:GetById. ", error);
+            if (error.message) {
+                response.status(500).json({
+                    code: error.code,
+                    error: error.message,
+                });
+            } else {
+                response.status(500).json({
+                    code: 500,
+                    error: error,
+                });
+            }
         }
-    }
+    });
 });
