@@ -356,8 +356,14 @@ export class Property {
         }
 
         switch (obj.propertyType) {
-        case PropertyType.APARTMENT:
+        case 0:
+            newProp.propertyType = PropertyType.HOUSE;
+            break;
+        case 1:
             newProp.propertyType = PropertyType.APARTMENT;
+            break;
+        case 2:
+            newProp.propertyType = PropertyType.OFFICE;
             break;
         default:
             newProp.propertyType = PropertyType.HOUSE;

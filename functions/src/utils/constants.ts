@@ -6,6 +6,7 @@ export enum Currency {
 export enum PropertyType {
     HOUSE,
     APARTMENT,
+    OFFICE
 }
 // Enum for commercial mode of a property
 export enum CommercialMode{
