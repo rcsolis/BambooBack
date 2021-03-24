@@ -88,15 +88,18 @@ export const create = functions
                     contentType: mimeType,
                 },
                 public: true,
+                predefinedAcl: "publicRead",
             }));
             // Wait for finished write operation
             await finishedAsync(bufferStream);
             // Get publics URL with 3 years of expiration
-            const signedUrls = await file.getSignedUrl({
-                action: "read",
-                expires: "12-31-2023",
-            });
-            const finalUrl = signedUrls[0];
+            // const signedUrls = await file.getSignedUrl({
+            //     action: "read",
+            //     expires: "12-31-2023",
+            // });
+            // const finalUrl = signedUrls[0];
+            await file.makePublic();
+            const finalUrl = file.publicUrl();
             // Update photo document adding new
             const picture: Picture = {
                 name: newFileName,
@@ -291,6 +294,8 @@ export const onCreate = functions.runWith(runtimeOpts)
             const tempFilePath = path.join(os.tmpdir(), fileName);
             const metadata = {
                 contentType: contentType,
+                public: true,
+                predefinedAcl: "publicRead",
             };
             const photosId = fileName.split("_")[0];
             // Download to temporal file storage
@@ -302,11 +307,13 @@ export const onCreate = functions.runWith(runtimeOpts)
                 const resThumb = await createThumbnail(size,
                     fileName, filePath, tempFilePath, metadata);
                 // get signed url for thumbnail
-                const signedUrls = await BUCKET.file(resThumb.path).getSignedUrl({
-                    action: "read",
-                    expires: "12-31-2023",
-                });
-                const finalUrl = signedUrls[0];
+                // const signedUrls = await BUCKET.file(resThumb.path).getSignedUrl({
+                //     action: "read",
+                //     expires: "12-31-2023",
+                // });
+                // const finalUrl = signedUrls[0];
+                await BUCKET.file(resThumb.path).makePublic();
+                const finalUrl = BUCKET.file(resThumb.path).publicUrl();
                 // Create new thumbnail object
                 const thumObj: Thumbnail = {
                     name: resThumb.name,
