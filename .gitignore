@@ -80,3 +80,5 @@ functions/typings/
 functions/node_modules/
 
 functions/*-debug.log
+
+.DS_Store
