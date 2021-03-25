@@ -5,6 +5,7 @@ import {
     RawProperty,
     PropertyInFirestore,
     RawPropertyShort,
+    RawPropertyForAdmin,
 } from "../utils/interfaces";
 
 /**
@@ -485,6 +486,46 @@ export class Property {
             commercialMode: this.commercialMode,
             source: this.source,
             matter: this.matter,
+        };
+    }
+
+
+    getAllComplete(): RawPropertyForAdmin {
+        return {
+            id: this.id,
+            name: this.name,
+            description: this.description,
+            years: this.years,
+            price: this.price,
+            currency: this.currency,
+            address: this.address.toFirestore(),
+            coordinates: this.coordinates.toFirestore(),
+            sizeMts: this.sizeMts,
+            buildMts: this.buildMts,
+            floor: this.floor,
+            rooms: this.rooms,
+            baths: this.baths,
+            parking: this.parking,
+            hasLivingRoom: this.hasLivingRoom,
+            hasKitchen: this.hasKitchen,
+            hasServiceRoom: this.hasServiceRoom,
+            hasServiceArea: this.hasServiceArea,
+            hasTvRoom: this.hasTvRoom,
+            hasFurniture: this.hasFurniture,
+            hasCloset: this.hasCloset,
+            hasTerrace: this.hasTerrace,
+            terraceMts: this.terraceMts,
+            amenities: this.amenities,
+            propertyType: this.propertyType,
+            commercialMode: this.commercialMode,
+            source: this.source,
+            matter: this.matter,
+            isAvailable: this.isAvailable,
+            isVisible: this.isVisible,
+            visits: this.visits,
+            interested: this.interested,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
         };
     }
 }

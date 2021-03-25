@@ -121,3 +121,58 @@ export const getById = functions.https.onRequest(async (request, response) => {
         }
     });
 });
+
+export const allmetadata = functions.https.onRequest( async ( request, response) => {
+    corsHandler( request, response, async () => {
+        try {
+            functions.logger.info("Search:AllMetaData. Start");
+            // Test method and data
+            if (request.method !== "GET" && request.is("application/json")) {
+                throw new functions.https.HttpsError(
+                    "unimplemented",
+                    "Method not allowed");
+            }
+            if (request.body === undefined ) {
+                throw new functions.https.HttpsError(
+                    "invalid-argument",
+                    "Data is empty");
+            }
+            const complete = request.query.complete;
+            // Get all Documents by price desc
+            const docRef = DB.collection("properties");
+            const snapshots = await docRef
+                .orderBy("price", "desc")
+                .get();
+            let total: number = 0;
+            const result: Array<any> = [];
+            if (!snapshots.empty) {
+                snapshots.forEach((document) => {
+                    const data: FirebaseFirestore.DocumentData = document.data();
+                    const prop: Property = Property.fromFirestore(document.id, data);
+                    if (complete === "true") {
+                        result.push(prop.getAllComplete());
+                    }
+                });
+                total = result.length;
+            }
+            functions.logger.info("Search:AllMetaData. End");
+            response.status(200).json({
+                total: total,
+                properties: result,
+            });
+        } catch (error) {
+            functions.logger.error("Exception in Search:AllMetaData. ", error);
+            if (error.message) {
+                response.status(500).json({
+                    code: error.code,
+                    error: error.message,
+                });
+            } else {
+                response.status(500).json({
+                    code: 500,
+                    error: error,
+                });
+            }
+        }
+    });
+});
