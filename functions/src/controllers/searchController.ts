@@ -146,6 +146,7 @@ export const allmetadata = functions.https.onRequest( async ( request, response)
             let total: number = 0;
             const result: Array<any> = [];
             if (!snapshots.empty) {
+                functions.logger.info("Search:AllMetaData. Get from Firestore");
                 snapshots.forEach((document) => {
                     const data: FirebaseFirestore.DocumentData = document.data();
                     const prop: Property = Property.fromFirestore(document.id, data);

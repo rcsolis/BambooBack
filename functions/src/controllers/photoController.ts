@@ -292,6 +292,7 @@ export const onCreate = functions.runWith(runtimeOpts)
             }
             // Create the temporal file path
             const tempFilePath = path.join(os.tmpdir(), fileName);
+            const resTempFilePath = path.join(os.tmpdir(), "resize"+fileName);
             const metadata = {
                 contentType: contentType,
                 public: true,
@@ -305,7 +306,11 @@ export const onCreate = functions.runWith(runtimeOpts)
             // For each size
             for (const size of SIZES) {
                 const resThumb = await createThumbnail(size,
-                    fileName, filePath, tempFilePath, metadata);
+                    fileName,
+                    filePath,
+                    tempFilePath,
+                    resTempFilePath,
+                    metadata);
                 // get signed url for thumbnail
                 // const signedUrls = await BUCKET.file(resThumb.path).getSignedUrl({
                 //     action: "read",
@@ -376,12 +381,14 @@ export const onCreate = functions.runWith(runtimeOpts)
  * @param {string} fileName Original file name
  * @param {string} filePath Original file path
  * @param {string} tempFilePath Temporal file path
+ * @param {string} resTempFilePath TempName for Resized
  * @param {object} metadata Object with the metadata like content type
  */
 async function createThumbnail(size: number,
     fileName: string,
     filePath: string,
     tempFilePath: string,
+    resTempFilePath: string,
     metadata: object): Promise<{name:string, path:string}> {
     // add a 'thumb_' and size prefix to thumbnails file name.
     const thumbFileName = `thumb_${size}_${fileName}`;
@@ -389,11 +396,13 @@ async function createThumbnail(size: number,
         thumbFileName);
     // Generate a thumbnail using ImageMagick.
     await spawn.spawn("convert",
-        [tempFilePath, "-scale", `${size}`, tempFilePath]);
+        [tempFilePath, "-resize", `${size}x`,
+            "-quality", "90", resTempFilePath]
+    );
     functions.logger.info("Photos:onCreate. Created thumbnail.",
         size, thumbFilePath, thumbFileName);
     // Uploading the thumbnail.
-    await BUCKET.upload(tempFilePath, {
+    await BUCKET.upload(resTempFilePath, {
         destination: thumbFilePath,
         metadata: metadata,
     });

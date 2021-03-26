@@ -387,6 +387,7 @@ export class Property {
         newProp.visits = obj.visits;
         newProp.interested = obj.interested;
         newProp.updatedAt = obj.updatedAt?.toDate();
+        newProp.createdAt = obj.createdAt?.toDate();
         return newProp;
     }
 
