@@ -49,6 +49,8 @@ export const create = functions.https.onRequest(async (request, response) => {
             resProp.writeTime.toDate(), plainDoc);
         // Return
         response.status(200).json({
+            code: 200,
+            error: "",
             time: resProp.writeTime.toDate(),
             obj: plainDoc,
         });
@@ -57,13 +59,17 @@ export const create = functions.https.onRequest(async (request, response) => {
         functions.logger.error("Exception in Properties:Create. ", error);
         if (error.message) {
             response.status(500).json({
-                code: error.code,
+                code: 500,
                 error: error.message,
+                time: "",
+                obj: "",
             });
         } else {
             response.status(500).json({
                 code: 500,
-                error: error,
+                error: error.message,
+                time: "",
+                obj: "",
             });
         }
     }
