@@ -1,11 +1,10 @@
-
-export interface AddressFirestore {
-    street: string;
-    colony: string;
-    municipality: string;
-    state: string;
-    postalCode: string;
-}
+// export interface AddressFirestore {
+//     street: string;
+//     colony: string;
+//     municipality: string;
+//     state: string;
+//     postalCode: string;
+// }
 
 export interface CoordinatesFirestore {
     latitude: string;
@@ -41,7 +40,8 @@ export interface RawProperty {
     years: number;
     price: number;
     currency: string;
-    address: AddressFirestore;
+    // address: AddressFirestore;
+    address: string;
     coordinates: CoordinatesFirestore;
     sizeMts: number;
     buildMts: number;
@@ -70,7 +70,8 @@ export interface RawPropertyShort {
     description: string;
     price: number;
     currency: string;
-    address: AddressFirestore;
+    // address: AddressFirestore;
+    address: string;
     coordinates: CoordinatesFirestore;
     sizeMts: number;
     buildMts: number;
@@ -91,7 +92,8 @@ export interface PropertyInFirestore {
     price: number;
     currency: string;
     years: number;
-    address: AddressFirestore;
+    // address: AddressFirestore;
+    address: string;
     coordinates: CoordinatesFirestore;
     sizeMts: number;
     buildMts: number;
@@ -128,7 +130,8 @@ export interface RawPropertyForAdmin {
     years: number;
     price: number;
     currency: string;
-    address: AddressFirestore;
+    // address: AddressFirestore;
+    address: string;
     coordinates: CoordinatesFirestore;
     sizeMts: number;
     buildMts: number;

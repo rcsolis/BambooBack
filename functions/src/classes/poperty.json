@@ -3,13 +3,14 @@
     "name":"Test Model",
     "description":"strgin",
     "years":1,
-    "address":{
-    	 "street": "string",
-	     "colony": "string",
-	     "municipality": "Miguel Hidalgo",
-	     "state": "CDMX",
-	     "postal_code": "11230",
-    },
+    // "address":{
+    // 	 "street": "string",
+	//      "colony": "string",
+	//      "municipality": "Miguel Hidalgo",
+	//      "state": "CDMX",
+	//      "postal_code": "11230",
+    // },
+    "address": "string",
     "coordinates":{
     	"latitude": 1.0,
     	"longitude": 1.0

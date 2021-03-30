@@ -1,4 +1,4 @@
-import { Address } from "./Address";
+// import {Address} from "./Address";
 import { Coordinates } from "./Coordinates";
 import { PropertyType, CommercialMode, Currency } from "../utils/constants";
 import {
@@ -19,7 +19,7 @@ export class Property {
     price: number;
     currency: Currency;
     years: number;
-    address: Address;
+    address: string;
     coordinates: Coordinates;
     sizeMts: number;
     buildMts: number;
@@ -59,7 +59,7 @@ export class Property {
         this.price = 0.0;
         this.currency = Currency.MXN;
         this.years= 0.0;
-        this.address= new Address();
+        this.address= "";
         this.coordinates = new Coordinates();
         this.sizeMts = 0.0;
         this.buildMts= 0.0;
@@ -103,15 +103,14 @@ export class Property {
         newProp.years = obj.years;
         newProp.price = obj.price;
         // address
-        newProp.address.street = obj.address.street;
-        newProp.address.colony = obj.address.colony;
-        newProp.address.municipality = obj.address.municipality;
-        newProp.address.state = obj.address.state;
-        newProp.address.postalCode = obj.address.postalCode;
+        newProp.address = obj.address;
+        // newProp.address.colony = obj.address.colony;
+        // newProp.address.municipality = obj.address.municipality;
+        // newProp.address.state = obj.address.state;
+        // newProp.address.postalCode = obj.address.postalCode;
         // coordinates
         newProp.coordinates.latitude = obj.coordinates.latitude;
         newProp.coordinates.longitude = obj.coordinates.longitude;
-
         newProp.sizeMts = obj.sizeMts;
         newProp.buildMts = obj.buildMts;
         newProp.floor = obj.floor;
@@ -237,23 +236,25 @@ export class Property {
             currency: newCurrency,
             years: (next.years !== current.years) ?
                 next.years : current.years,
-            address: {
-                street: (next.address.street &&
-                    next.address.street !== current.address.street) ?
-                    next.address.street : current.address.street,
-                colony: (next.address.colony &&
-                    next.address.colony !== current.address.colony) ?
-                    next.address.colony : current.address.colony,
-                municipality: (next.address.municipality &&
-                next.address.municipality !== current.address.municipality) ?
-                    next.address.municipality : current.address.municipality,
-                state: (next.address.state &&
-                    next.address.state !== current.address.state) ?
-                    next.address.state : current.address.state,
-                postalCode: (next.address.postalCode &&
-                    next.address.postalCode !== current.address.postalCode) ?
-                    next.address.postalCode : current.address.postalCode,
-            },
+            address: (next.address && next.address != current.address) ?
+                next.address : current.address,
+            // address: {
+            //     street: (next.address.street &&
+            //         next.address.street !== current.address.street) ?
+            //         next.address.street : current.address.street,
+            //     colony: (next.address.colony &&
+            //         next.address.colony !== current.address.colony) ?
+            //         next.address.colony : current.address.colony,
+            //     municipality: (next.address.municipality &&
+            //     next.address.municipality !== current.address.municipality) ?
+            //         next.address.municipality : current.address.municipality,
+            //     state: (next.address.state &&
+            //         next.address.state !== current.address.state) ?
+            //         next.address.state : current.address.state,
+            //     postalCode: (next.address.postalCode &&
+            //         next.address.postalCode !== current.address.postalCode) ?
+            //         next.address.postalCode : current.address.postalCode,
+            // },
             coordinates: {
                 latitude: (next.coordinates.latitude &&
                 next.coordinates.latitude !== current.coordinates.latitude )?
@@ -319,11 +320,12 @@ export class Property {
         newProp.years = obj.years;
         newProp.price = obj.price;
         // address
-        newProp.address.street = obj.address.street;
-        newProp.address.colony = obj.address.colony;
-        newProp.address.municipality = obj.address.municipality;
-        newProp.address.state = obj.address.state;
-        newProp.address.postalCode = obj.address.postalCode;
+        newProp.address = obj.address;
+        // newProp.address.street = obj.address.street;
+        // newProp.address.colony = obj.address.colony;
+        // newProp.address.municipality = obj.address.municipality;
+        // newProp.address.state = obj.address.state;
+        // newProp.address.postalCode = obj.address.postalCode;
         // coordinates
         newProp.coordinates.latitude = obj.coordinates.latitude;
         newProp.coordinates.longitude = obj.coordinates.longitude;
@@ -405,7 +407,8 @@ export class Property {
             price: this.price,
             currency: this.currency,
             years: this.years,
-            address: this.address.toFirestore(),
+            // address: this.address.toFirestore(),
+            address: this.address,
             coordinates: this.coordinates.toFirestore(),
             sizeMts: this.sizeMts,
             buildMts: this.buildMts,
@@ -443,7 +446,8 @@ export class Property {
             years: this.years,
             price: this.price,
             currency: this.currency,
-            address: this.address.toFirestore(),
+            // address: this.address.toFirestore(),
+            address: this.address,
             coordinates: this.coordinates.toFirestore(),
             sizeMts: this.sizeMts,
             buildMts: this.buildMts,
@@ -475,7 +479,8 @@ export class Property {
             description: this.description,
             price: this.price,
             currency: this.currency,
-            address: this.address.toFirestore(),
+            // address: this.address.toFirestore(),
+            address: this.address,
             coordinates: this.coordinates.toFirestore(),
             sizeMts: this.sizeMts,
             buildMts: this.buildMts,
@@ -499,7 +504,8 @@ export class Property {
             years: this.years,
             price: this.price,
             currency: this.currency,
-            address: this.address.toFirestore(),
+            // address: this.address.toFirestore(),
+            address: this.address,
             coordinates: this.coordinates.toFirestore(),
             sizeMts: this.sizeMts,
             buildMts: this.buildMts,

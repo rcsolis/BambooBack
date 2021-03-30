@@ -33,6 +33,7 @@ export const create = functions.https.onRequest(async (request, response) => {
         }
         // Get data from post
         const data: RawProperty = request.body.data;
+        functions.logger.debug(data);
         // Create new property
         const newProperty: Property = Property.create(data,
             admin.firestore.FieldValue.serverTimestamp()
