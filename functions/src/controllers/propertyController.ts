@@ -33,12 +33,12 @@ export const create = functions.https.onRequest(async (request, response) => {
         }
         // Get data from post
         const data: RawProperty = request.body.data;
-        functions.logger.debug(data);
+        functions.logger.debug("Properties:Create. RAW data", data);
         // Create new property
         const newProperty: Property = Property.create(data,
             admin.firestore.FieldValue.serverTimestamp()
         );
-        functions.logger.info("Properties:Create. Convert data", data);
+        functions.logger.debug("Properties:Create. Convert data", newProperty);
         // Create document reference
         const propertyRef = await DB.collection("properties").doc();
         // Convert object to save to firestore
@@ -47,13 +47,50 @@ export const create = functions.https.onRequest(async (request, response) => {
         // Save to Firestore
         const resProp = await propertyRef.set(plainDoc);
         functions.logger.info("Properties:Create. End creation",
-            resProp.writeTime.toDate(), plainDoc);
-        // Return
+            resProp.writeTime.toDate());
+        // Create a navite object for parse to JSON
+        const returnedObject = {
+            id: plainDoc.id,
+            name: plainDoc.name,
+            description: plainDoc.description,
+            price: plainDoc.price,
+            currency: plainDoc.currency,
+            years: plainDoc.years,
+            address: plainDoc.address,
+            coordinates: {
+                latitude: plainDoc.coordinates.latitude,
+                longitude: plainDoc.coordinates.longitude,
+            },
+            sizeMts: plainDoc.sizeMts,
+            buildMts: plainDoc.buildMts,
+            floor: plainDoc.floor,
+            rooms: plainDoc.rooms,
+            baths: plainDoc.baths,
+            parking: plainDoc.parking,
+            hasLivingRoom: plainDoc.hasLivingRoom,
+            hasKitchen: plainDoc.hasKitchen,
+            hasServiceRoom: plainDoc.hasServiceRoom,
+            hasServiceArea: plainDoc.hasServiceArea,
+            hasTvRoom: plainDoc.hasTvRoom,
+            hasFurniture: plainDoc.hasFurniture,
+            hasCloset: plainDoc.hasCloset,
+            hasTerrace: plainDoc.hasTerrace,
+            terraceMts: plainDoc.terraceMts,
+            amenities: plainDoc.amenities,
+            propertyType: plainDoc.propertyType,
+            source: plainDoc.source,
+            matter: plainDoc.matter,
+            commercialMode: plainDoc.commercialMode,
+            isAvailable: plainDoc.isAvailable,
+            isVisible: plainDoc.isVisible,
+            visits: plainDoc.visits,
+            interested: plainDoc.interested,
+        };
         response.status(200).json({
             code: 200,
             error: "",
             time: resProp.writeTime.toDate(),
-            obj: plainDoc,
+            obj: returnedObject,
         });
     // Error Handle
     } catch (error) {

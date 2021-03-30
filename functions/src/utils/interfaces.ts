@@ -157,9 +157,5 @@ export interface RawPropertyForAdmin {
     isVisible: boolean;
     visits: number;
     interested: number;
-    updatedAt: FirebaseFirestore.FieldValue |
-    FirebaseFirestore.Timestamp | Date | undefined;
-    createdAt: FirebaseFirestore.FieldValue |
-    FirebaseFirestore.Timestamp | Date | undefined;
 }
 

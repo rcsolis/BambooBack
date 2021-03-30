@@ -104,10 +104,6 @@ export class Property {
         newProp.price = obj.price;
         // address
         newProp.address = obj.address;
-        // newProp.address.colony = obj.address.colony;
-        // newProp.address.municipality = obj.address.municipality;
-        // newProp.address.state = obj.address.state;
-        // newProp.address.postalCode = obj.address.postalCode;
         // coordinates
         newProp.coordinates.latitude = obj.coordinates.latitude;
         newProp.coordinates.longitude = obj.coordinates.longitude;
@@ -531,8 +527,6 @@ export class Property {
             isVisible: this.isVisible,
             visits: this.visits,
             interested: this.interested,
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt,
         };
     }
 }
