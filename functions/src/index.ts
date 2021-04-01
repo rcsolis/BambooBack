@@ -1,7 +1,6 @@
 import * as app from "firebase-admin";
 app.initializeApp();
 
-
 // Organize and group functions based on features
 import * as property from "./controllers/propertyController";
 import * as searching from "./controllers/searchController";

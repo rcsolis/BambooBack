@@ -12,14 +12,6 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-// transporter.verify(function(error: any) {
-//     if (error) {
-//         functions.logger.info(error);
-//     } else {
-//       functions.logger.info("Email:Send. Server is ready to take our messages.");
-//     }
-// });
-
 export const send = functions.https.onRequest(async (request, response) => {
     corsHandler( request, response, async () => {
         try {

@@ -56,10 +56,12 @@ export const create = functions.https.onRequest(async (request, response) => {
             price: plainDoc.price,
             currency: plainDoc.currency,
             years: plainDoc.years,
-            address: plainDoc.address,
-            coordinates: {
-                latitude: plainDoc.coordinates.latitude,
-                longitude: plainDoc.coordinates.longitude,
+            location: {
+                latitude: plainDoc.location.latitude,
+                longitude: plainDoc.location.longitude,
+                placeId: plainDoc.location.placeId,
+                reference: plainDoc.location.reference,
+                address: plainDoc.location.address,
             },
             sizeMts: plainDoc.sizeMts,
             buildMts: plainDoc.buildMts,
