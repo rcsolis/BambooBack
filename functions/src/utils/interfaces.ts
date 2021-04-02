@@ -57,6 +57,7 @@ export interface RawProperty {
     source: string;
     matter: string;
 }
+
 export interface RawPropertyShort {
     id: string | undefined;
     name: string;

@@ -167,7 +167,7 @@ export class Property {
      * @param {any} updateTimestamp Server timestamp
      * @return {PropertyInFirestore} Updated plain object
      */
-    static update = (docId: string,
+    static updateAll = (docId: string,
         current: FirebaseFirestore.DocumentData,
         next: RawProperty,
         updateTimestamp: any): PropertyInFirestore => {
@@ -287,6 +287,163 @@ export class Property {
             isVisible: current.isVisible,
             visits: current.visits,
             interested: current.interested,
+            updatedAt: updateTimestamp,
+        };
+    }
+    /**
+     * Method for update a document, its checks every property if
+     * exists on the new (if its recieved) and update, or use
+     * the current value.
+     * @param {string} docId String
+     * @param {FirebaseFirestore.DocumentData} current DocumentData
+     * @param {any} next Object
+     * @param {any} updateTimestamp ServerTimeStamp value
+     * @return {object} New object to update and merge in firestore
+     */
+    static update = (docId: string,
+        current: FirebaseFirestore.DocumentData,
+        next: any,
+        updateTimestamp: any) => {
+        let newAmenities: Array<string> = [];
+        const curAmenities: Array<string> = current.amenities;
+        if ("amenities" in next) {
+            next.amenities.forEach((value:string) => {
+                if (!curAmenities.includes(value)) {
+                    curAmenities.push(value);
+                }
+            });
+            newAmenities = curAmenities.sort((a, b) => {
+                if (a > b) return 1;
+                if (a < b) return -1;
+                return 0;
+            });
+        }
+        let newPropertyType: PropertyType = current.propertyType;
+        if ("propertyType" in next &&
+            next.propertyType !== current.propertyType) {
+            switch (next.propertyType) {
+            case PropertyType.APARTMENT:
+                newPropertyType = PropertyType.APARTMENT;
+                break;
+            default:
+                newPropertyType = PropertyType.HOUSE;
+                break;
+            }
+        }
+        let newCommercialMode: CommercialMode = current.commercialMode;
+        if ("commercialMode" in next &&
+            next.commercialMode !== current.commercialMode) {
+            switch (next.commercialMode) {
+            case CommercialMode.PRESELL:
+                newCommercialMode = CommercialMode.PRESELL;
+                break;
+            case CommercialMode.RENT:
+                newCommercialMode = CommercialMode.RENT;
+                break;
+            default:
+                newCommercialMode = CommercialMode.SELL;
+                break;
+            }
+        }
+        let newCurrency: Currency = current.currency;
+        if ("currency" in next && next.currency !== current.currency) {
+            switch (next.currency) {
+            case Currency.USD:
+                newCurrency = Currency.USD;
+                break;
+            default:
+                newCurrency = Currency.MXN;
+                break;
+            }
+        }
+        return {
+            id: docId,
+            name: ("name" in next) ?
+                ( (next.name && next.name !== current.name) ?
+                    next.name : current.name) : current.name,
+            description:
+                ("description" in next)? ((next.description &&
+                    next.description !== current.description) ?
+                    next.description : current.description) : current.description,
+            price: ("price" in next)?( (next.price && next.price !== current.price &&
+                next.price > 0) ?
+                next.price : current.price):current.price,
+            currency: newCurrency,
+            years: ("years" in next) ?
+                ((next.years !== current.years) ?
+                    next.years : current.years) : current.years,
+            location: ("location" in next) ? {
+                latitude: ("latitude" in next.location && next.location.latitude &&
+                next.location.latitude !== current.location.latitude )?
+                    next.location.latitude : current.location.latitude,
+                longitude: ("longitude" in next.location &&
+                    next.location.longitude &&
+                next.location.longitude !== current.location.longitude) ?
+                    next.location.longitude : current.location.longitude,
+                address: ("address" in next.location && next.location.address &&
+                    next.location.address != current.location.address) ?
+                    next.location.address : current.location.address,
+                placeId: ("placeId" in next.location && next.location.placeId &&
+                    next.location.placeId != current.location.placeId) ?
+                    next.location.placeId : current.location.placeId,
+                reference: ("reference" in next.location &&
+                    next.location.reference &&
+                    next.location.reference != current.location.reference) ?
+                    next.location.reference : current.location.reference,
+            }:current.location,
+            sizeMts: ("sizeMts" in next)? ((next.sizeMts !== current.sizeMts) ?
+                next.sizeMts : current.sizeMts): current.sizeMts,
+            buildMts: ("buildMts" in next)?((next.buildMts !== current.buildMts) ?
+                next.buildMts : current.buildMts):current.buildMts,
+            floor: ("floor" in next)?((next.floor !== current.floor) ?
+                next.floor : current.floor):current.floor,
+            rooms: ("rooms" in next)?((next.rooms !== current.rooms) ?
+                next.rooms : current.rooms):current.rooms,
+            baths: ("baths" in next)?((next.baths !== current.baths) ?
+                next.baths : current.baths): current.baths,
+            parking: ("parking" in next)? ((next.parking !== current.parking) ?
+                next.parking : current.parking): current.parking,
+            hasLivingRoom: ("hasLivingRoom" in next) ?
+                ((next.hasLivingRoom !== current.hasLivingRoom) ?
+                    next.hasLivingRoom : current.hasLivingRoom) :
+                current.hasLivingRoom,
+            hasKitchen: ("hasKitchen" in next) ?
+                ((next.hasKitchen !== current.hasKitchen) ?
+                    next.hasKitchen : current.hasKitchen) :
+                current.hasKitchen,
+            hasServiceRoom: ("hasServiceRoom" in next) ?
+                ((next.hasServiceRoom !== current.hasServiceRoom) ?
+                    next.hasServiceRoom : current.hasServiceRoom) :
+                current.hasServiceRoom,
+            hasServiceArea: ("hasServiceArea" in next) ?
+                ((next.hasServiceArea !== current.hasServiceArea) ?
+                    next.hasServiceArea : current.hasServiceArea) :
+                current.hasServiceArea,
+            hasTvRoom: ("hasTvRoom" in next) ?
+                ((next.hasTvRoom !== current.hasTvRoom) ?
+                    next.hasTvRoom : current.hasTvRoom) :
+                current.hasTvRoom,
+            hasFurniture: ("hasFurniture" in next) ?
+                ((next.hasFurniture !== current.hasFurniture) ?
+                    next.hasFurniture : current.hasFurniture) :
+                current.hasFurniture,
+            hasCloset: ("hasCloset" in next) ?
+                ((next.hasCloset !== current.hasCloset) ?
+                    next.hasCloset : current.hasCloset) :
+                current.hasCloset,
+            hasTerrace: ("hasTerrace" in next) ?
+                ((next.hasTerrace !== current.hasTerrace) ?
+                    next.hasTerrace : current.hasTerrace) :
+                current.hasTerrace,
+            terraceMts: ("terraceMts" in next) ?
+                ((next.terraceMts !== current.terraceMts) ?
+                    next.terraceMts : current.terraceMts) :
+                current.terraceMts,
+            amenities: newAmenities,
+            propertyType: newPropertyType,
+            source: ("source" in next)? next.source:current.source,
+            matter: ("matter" in next)? next.matter:current.matter,
+            commercialMode: newCommercialMode,
             updatedAt: updateTimestamp,
         };
     }

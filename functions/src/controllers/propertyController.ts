@@ -116,6 +116,79 @@ export const create = functions.https.onRequest(async (request, response) => {
 });
 /**
  * SERVICE FUNCTION
+ * Update all the property fields
+ * Use PUT method to send new document values to update general
+ * information of a property
+ * @param {string} docId Property identifier
+ * @param {RawProperty} data Updated data
+ */
+export const updateAll = functions.https.onRequest(async (request, response) => {
+    try {
+        functions.logger.info("Properties:UpdateAll. Start");
+        // Test method and data
+        if (request.method !== "PUT" && request.is("application/json")) {
+            throw new functions.https.HttpsError(
+                "unimplemented",
+                "Method not allowed");
+        }
+        if (request.body === undefined ) {
+            throw new functions.https.HttpsError(
+                "invalid-argument",
+                "Data is empty");
+        }
+        // Body is in form of id, data
+        const { docId, data } = request.body;
+        if (!docId || !data) {
+            throw new functions.https.HttpsError(
+                "not-found",
+                "Data is empty");
+        }
+        functions.logger.info("Properties:UpdateAll. Parse", docId, data);
+        // Get document to update
+        const propertyRef = DB.collection("properties").doc(docId);
+        const propertyDoc = await propertyRef.get();
+        if (!propertyDoc.exists) {
+            throw new functions.https.HttpsError(
+                "not-found",
+                "Property does not exist.");
+        }
+        const currentData = propertyDoc.data();
+        if (!currentData) {
+            throw new functions.https.HttpsError(
+                "not-found",
+                "Property data does not exist.");
+        }
+        const newData: PropertyInFirestore = Property.updateAll(docId,
+            currentData,
+            data,
+            admin.firestore.FieldValue.serverTimestamp()
+        );
+        // Update using set and merge
+        const updateRes = await propertyRef.set(newData, { merge: true });
+        functions.logger.info("Properties:UpdateAll. Updated successfully",
+            updateRes.writeTime.toDate(), newData);
+        // Return
+        response.status(200).json({
+            time: updateRes.writeTime.toDate(),
+            obj: newData,
+        });
+    } catch (error) {
+        functions.logger.error("Exception in Properties:UpdateAll. ", error);
+        if (error.message) {
+            response.status(500).json({
+                code: error.code,
+                error: error.message,
+            });
+        } else {
+            response.status(500).json({
+                code: 500,
+                error: error,
+            });
+        }
+    }
+});
+/**
+ * SERVICE FUNCTION
  * Update a property
  * Use PUT method to send new document values to update general
  * information of a property
@@ -143,7 +216,8 @@ export const update = functions.https.onRequest(async (request, response) => {
                 "not-found",
                 "Data is empty");
         }
-        functions.logger.info("Properties:Update. Parse", docId, data);
+        functions.logger.debug("Properties:Update. Data recieved");
+        functions.logger.debug(docId, data);
         // Get document to update
         const propertyRef = DB.collection("properties").doc(docId);
         const propertyDoc = await propertyRef.get();
@@ -158,11 +232,12 @@ export const update = functions.https.onRequest(async (request, response) => {
                 "not-found",
                 "Property data does not exist.");
         }
-        const newData: PropertyInFirestore = Property.update(docId,
+        const newData: any = Property.update(docId,
             currentData,
             data,
             admin.firestore.FieldValue.serverTimestamp()
         );
+        functions.logger.info("Properties:Update. Parsed data", newData);
         // Update using set and merge
         const updateRes = await propertyRef.set(newData, { merge: true });
         functions.logger.info("Properties:Update. Updated successfully",
