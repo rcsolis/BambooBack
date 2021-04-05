@@ -246,6 +246,8 @@ export const update = functions.https.onRequest(async (request, response) => {
         response.status(200).json({
             time: updateRes.writeTime.toDate(),
             obj: newData,
+            code: 200,
+            error: "",
         });
     } catch (error) {
         functions.logger.error("Exception in Properties:Update. ", error);
@@ -253,11 +255,15 @@ export const update = functions.https.onRequest(async (request, response) => {
             response.status(500).json({
                 code: error.code,
                 error: error.message,
+                time: "",
+                obj: "",
             });
         } else {
             response.status(500).json({
                 code: 500,
                 error: error,
+                time: "",
+                obj: "",
             });
         }
     }

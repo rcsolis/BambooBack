@@ -444,6 +444,10 @@ export class Property {
             source: ("source" in next)? next.source:current.source,
             matter: ("matter" in next)? next.matter:current.matter,
             commercialMode: newCommercialMode,
+            isAvailable: current.isAvailable,
+            isVisible: current.isVisible,
+            visits: current.visits,
+            interested: current.interested,
             updatedAt: updateTimestamp,
         };
     }
