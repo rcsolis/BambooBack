@@ -120,6 +120,8 @@ export const create = functions
                 photoId: photoRef.id,
                 fileName: newFileName,
                 url: finalUrl,
+                code: 200,
+                error: "",
             });
         } catch (error) {
             functions.logger.error("Exception in Photos:Create. ", error);
@@ -127,11 +129,19 @@ export const create = functions
                 response.status(500).json({
                     code: error.code,
                     error: error.message,
+                    docId: "",
+                    photoId: "",
+                    fileName: "",
+                    url: "",
                 });
             } else {
                 response.status(500).json({
                     code: 500,
                     error: error,
+                    docId: "",
+                    photoId: "",
+                    fileName: "",
+                    url: "",
                 });
             }
         }
